@@ -118,6 +118,7 @@ def show_home_page():
 
     st.subheader("Navigation")
     st.write("Use the sidebar to open Login, Dashboard, or Chat.")
+    st.write("New users should register before opening the dashboard.")
 
 
 st.set_page_config(
@@ -126,18 +127,33 @@ st.set_page_config(
     layout="wide",
 )
 
-home_page = st.Page(show_home_page, title="Home")
+if "is_authenticated" not in st.session_state:
+    st.session_state["is_authenticated"] = False
+
+if "user" not in st.session_state:
+    st.session_state["user"] = None
+
 login_page = st.Page("pages/1_Login.py", title="Login")
 dashboard_page = st.Page("pages/2_Dashboard.py", title="Dashboard")
 chat_page = st.Page("pages/3_Chat.py", title="Chat")
+home_page = st.Page(show_home_page, title="Home")
 
 selected_page = st.navigation(
     [
-        home_page,
         login_page,
         dashboard_page,
         chat_page,
+        home_page,
     ]
 )
+
+if st.session_state["is_authenticated"]:
+    current_user = st.session_state.get("user") or {}
+    st.sidebar.write(f"Logged in as {current_user.get('username', 'user')}")
+
+    if st.sidebar.button("Log out"):
+        st.session_state["is_authenticated"] = False
+        st.session_state["user"] = None
+        st.rerun()
 
 selected_page.run()
