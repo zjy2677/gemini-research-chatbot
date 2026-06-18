@@ -1,32 +1,9 @@
-# Phase 1 instructions for requirements.txt
-#
-# Purpose:
-# This file lists the Python packages needed to run the project.
-# In Phase 1, we only need Streamlit because we are building a minimal
-# app shell with a landing page and three placeholder pages.
-#
-# Minimal Phase 1 behavior:
-# After you manually uncomment the dependency below, this command should
-# install the only package needed for this phase:
-#
-#     pip install -r requirements.txt
-#
-# Then this command should print a Streamlit version:
-#
-#     streamlit --version
-#
-# Step-by-step:
-# 1. Read this file.
-# 2. Notice that the dependency is currently commented out.
-# 3. When you are ready to install Streamlit, remove the "# " in front
-#    of the line below.
-# 4. Save the file.
-# 5. Run "pip install -r requirements.txt" from the project root.
-#
-# Reference dependency for Phase 1:
-# streamlit
-#
-# Learning note:
-# We are not adding packages for PostgreSQL, Gemini, authentication,
-# PDF generation, or React tooling yet. Keeping dependencies small makes
-# it easier to understand exactly what each phase needs.
+streamlit
+fastapi
+uvicorn
+sqlalchemy
+psycopg[binary]
+bcrypt
+requests
+toml
+google-genai
