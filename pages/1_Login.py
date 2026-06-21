@@ -45,7 +45,7 @@ with login_tab:
                 st.session_state["is_authenticated"] = True
                 st.session_state["user"] = user
 
-                st.success("Login successful. You can now open the dashboard.")
+                st.switch_page("pages/2_Dashboard.py")
             else:
                 show_api_error(response)
         except requests.RequestException as error:

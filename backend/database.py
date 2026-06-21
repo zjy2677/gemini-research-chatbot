@@ -24,6 +24,8 @@ def get_engine():
 
 
 def create_tables() -> None:
+    from backend.models.dialogues import Dialogue
+    from backend.models.messages import Message
     from backend.models.users import User
 
     Base.metadata.create_all(bind=get_engine())
