@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import requests
 import streamlit as st
 
@@ -8,14 +10,49 @@ if not st.session_state.get("is_authenticated"):
     st.warning("Please log in before opening the chat page.")
     st.stop()
 
-if "chat_messages" not in st.session_state:
-    st.session_state["chat_messages"] = []
+current_user = st.session_state.get("user") or {}
+
+
+def get_user_history_key(user):
+    user_key = user.get("id") or user.get("username") or "anonymous"
+
+    return f"dialogue_history_{user_key}"
+
+
+def find_active_dialogue(history, dialogue_id):
+    for dialogue in history:
+        if dialogue["id"] == dialogue_id:
+            return dialogue
+
+    return None
+
+
+history_key = get_user_history_key(current_user)
+
+if history_key not in st.session_state:
+    st.session_state[history_key] = []
+
+active_dialogue_id = st.session_state.get("active_dialogue_id")
+active_dialogue = find_active_dialogue(
+    st.session_state[history_key],
+    active_dialogue_id,
+)
+
+if active_dialogue is None:
+    st.warning("Create or select a dialogue from the dashboard before opening chat.")
+
+    if st.button("Open dashboard"):
+        st.switch_page("pages/2_Dashboard.py")
+
+    st.stop()
 
 st.title("Chat")
 
 st.write(
     "This page now sends normal chat messages to Gemini through the FastAPI backend."
 )
+
+st.caption(f"Dialogue ID: {active_dialogue['id']}")
 
 chat_modes = [
     "chat",
@@ -51,31 +88,38 @@ if chat_mode != "chat":
 
 st.subheader("Messages")
 
-for message in st.session_state["chat_messages"]:
+messages = active_dialogue["messages"]
+
+for message in messages:
     with st.chat_message(message["role"]):
         st.write(message["content"])
 
 user_message = st.chat_input("Ask Gemini something...")
 
 if user_message:
-    st.session_state["chat_messages"].append(
+    messages.append(
         {
             "role": "user",
             "content": user_message,
         }
     )
+    active_dialogue["updated_at"] = datetime.now().isoformat(timespec="seconds")
+
+    if active_dialogue["title"] == "New dialogue":
+        active_dialogue["title"] = user_message[:60]
 
     with st.chat_message("user"):
         st.write(user_message)
 
     if chat_mode != "chat":
         assistant_message = "This mode is not implemented yet. Switch to chat mode to talk with Gemini."
-        st.session_state["chat_messages"].append(
+        messages.append(
             {
                 "role": "assistant",
                 "content": assistant_message,
             }
         )
+        active_dialogue["updated_at"] = datetime.now().isoformat(timespec="seconds")
 
         with st.chat_message("assistant"):
             st.write(assistant_message)
@@ -100,16 +144,22 @@ if user_message:
             st.caption("Make sure the API is running with `python3 -m uvicorn backend.main:app --reload`.")
             st.code(str(error))
 
-        st.session_state["chat_messages"].append(
+        messages.append(
             {
                 "role": "assistant",
                 "content": assistant_message,
             }
         )
+        active_dialogue["updated_at"] = datetime.now().isoformat(timespec="seconds")
 
         with st.chat_message("assistant"):
             st.write(assistant_message)
 
-if st.button("Clear chat"):
-    st.session_state["chat_messages"] = []
-    st.rerun()
+if st.button("Delete chat"):
+    st.session_state[history_key] = [
+        dialogue
+        for dialogue in st.session_state[history_key]
+        if dialogue["id"] != active_dialogue["id"]
+    ]
+    st.session_state["active_dialogue_id"] = None
+    st.switch_page("pages/2_Dashboard.py")
